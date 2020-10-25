@@ -1,8 +1,9 @@
 import random
+import re
 
 #Builds out prequel quote dictionary
 quotes = {}
-
+regexes = {}
 def add_quote(character, episode, quote):
     if quotes.get(character) == None:
         quotes[character] = {}
@@ -11,8 +12,15 @@ def add_quote(character, episode, quote):
         quotes[character]["III"] = []
         quotes[character]["Ubiq"] = []
     quotes[character][episode].append(quote)
-    return
+    
 
+def set_regex(regex, characters):
+    if regexes.get(regex) == None:
+        regexes[regex] = []
+    for character in characters:
+        regexes[regex].append(character)
+    
+#Creates database of prequel quotes and sets regular expressions for the characters
 add_quote("Anakin Skywalker", "I", "Are you an angel?")
 add_quote("Anakin Skywalker", "I", "I'm a person and my name is Anakin.")
 add_quote("Anakin Skywalker", "I", "Yippee!")
@@ -91,7 +99,7 @@ add_quote("Elan", "II", "I want to go home and rethink my life.")
 
 add_quote("General Grievous", "III", "Ah, yes. The negotiator.")
 add_quote("General Grievous", "III", "Your lightsabers will make a fine addition to my collection.")
-add_quote("General Grievous", "III", "Time to abandon ship.")
+add_quote("General Grievous", "III", "Time to abandon ship!")
 add_quote("General Grievous", "III", "General Kenobi!")
 add_quote("General Grievous", "III", "You fool! I have been trained in your Jedi arts by Count Dooku.")
 add_quote("General Grievous", "III", "Surely you must realize, you are doomed.")
@@ -209,7 +217,7 @@ add_quote("Palpatine", "III", "Get help! You're no match for him. He's a Sith Lo
 add_quote("Palpatine", "III", "Good, Anakin, Good... Kill him. Kill him now.")
 add_quote("Palpatine", "III", "Do it!")
 add_quote("Palpatine", "III", "It is only natural. He cut off your arm, and you wanted revenge.")
-add_quote("Palpatine", "III", "Leavea him or we'll never make it!")
+add_quote("Palpatine", "III", "Leave him or we'll never make it!")
 add_quote("Palpatine", "III", "Soon I will have a new apprentice, one far younger and more powerful.")
 add_quote("Palpatine", "III", "Good is a point of view, Anakin.")
 add_quote("Palpatine", "III", "The Sith and the Jedi are similar in almost every way.")
@@ -264,25 +272,80 @@ add_quote("Zam Wessell", "II", "It was a bounty hunter called...")
 add_quote("Ubiq", "Ubiq", "I have a bad feeling about this.")
 add_quote("Ubiq", "Ubiq", "May the Force be with you.")
 
+
+#Sets regular expressions
+
+set_regex("(anakin)|(annie?)", ["Anakin Skywalker"])
+set_regex("battle droid", ["Battle Droid"])
+set_regex("beed", ["Beed"])
+set_regex("boss.*nass", ["Boss Nass"])
+set_regex("(c.?3po)|(protocol)", ["C-3PO"])
+set_regex("maul", ["Darth Maul"])
+set_regex("(dexter)|(jet?tster)", ["Dexter Jettster"])
+set_regex("(dooku)|(count)|(tyrann?o?us)", ["Dooku"])
+set_regex("(elan)|(drug.?dealer)", ["Elan"])
+set_regex("gri?evo?us", ["General Grievous"])
+set_regex("jango", ["Jango Fett"])
+set_regex("(jar.?jar)|(binks)", ["Jar Jar Binks"])
+set_regex("jedi.*(kid|child)", ["Jedi Child Jack"])
+set_regex("(jocasta.?nu)|(librarian)", ["Jocasta Nu"])
+set_regex("(mundi)|(big.?head)", ["Ki-Adi-Mundi"])
+set_regex("(lama.?su)|(cloner)|(kaminoan)", ["Lama Su"])
+set_regex("(mace|windu)", ["Mace Windu"])
+set_regex("medic.*droid", ["Medical Droid"])
+set_regex("(nute)|(gunray)|(viceroy)", ["Nute Gunray"])
+set_regex("(obi.?wan)|(kenobi)|(jesus)", ["Obi-Wan Kenobi"])
+set_regex("(padme)|(amidala)", ["Padme Amidala"])
+set_regex("(palp[s(atine)])|(sheev)|(sid[ie]ous)|(chancell?or)", ["Palpatine"])
+set_regex("(qui.?gon)|(jinn)", ["Qui-Gon Jinn"])
+set_regex("(r2)|(astromech)", ["R2-D2"])
+set_regex("(san.?hill)|(banking.?clan)", ["San Hill"])
+set_regex("sebulba", ["Sebulba"])
+set_regex("watto", ["Watto"])
+set_regex("yoda", ["Yoda"])
+set_regex("youngling", ["Youngling"])
+set_regex("zam", ["Zam Wessell"])
+
 #Chats with user until user manually ends loop
 
+quote_list = []
+for character in quotes.keys():
+    for episode in quotes[character].keys():
+        quote_list += quotes[character][episode]
 
-def chat():
-
-    quote_list = []
-
-    for character in quotes.keys():
-        for episode in quotes[character].keys():
-            quote_list += quotes[character][episode]
+def chat_init():
     
     print("\nYou are now chatting with the characters of the critically acclaimed Star Wars prequel trilogy! To exit the chat, simply type \"END\" at any time. I have a good feeling about this!")
-    
-    while True:
-        usrinput = input("\n")
-        if usrinput == "END":
-            print("\nChat ended. May the force be with you.\n")
-            return
-        output = quote_list[random.randint(0, len(quote_list) - 1)]
-        print("\n    " + output)
+    chat(quote_list)
 
-chat()
+def chat(quotes_to_use):
+    usrinput = (input("\n")).lower()
+    #Checks whether the user wants to chat with a specific character
+    if re.match(".*(chat|talk|speak) (with|to)", usrinput):
+        character_found = False
+        for regex in regexes.keys():
+            if re.match(".*" + regex, usrinput):
+                character = regexes[regex][0]
+                character_found = True
+                print(f"\nYou are now chatting with {character}! To return to default chat, simply type \"return\" at any time")
+                character_quotes = []
+                for episode in quotes[character].keys():
+                    for quote in quotes[character][episode]:
+                        character_quotes.append(quote)
+                chat(character_quotes)
+                break
+        if not character_found:
+            print("\nI'm sorry, that character is not recognized.")
+            chat(quote_list)
+    elif usrinput =="return":
+        print("\nReturning to default chat!")
+        chat(quote_list)
+    elif usrinput == "end":
+        print("\nChat ended. May the force be with you.\n")
+        return
+    else:
+        output = quotes_to_use[random.randint(0, len(quotes_to_use) - 1)]
+        print("\n    " + output)
+        chat(quotes_to_use)
+    
+chat_init()
